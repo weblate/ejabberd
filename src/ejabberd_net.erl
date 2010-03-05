@@ -32,7 +32,7 @@ gethostname(Socket) ->
             {ok, HostEnt} when is_record(HostEnt, hostent) ->
                 {ok, HostEnt#hostent.h_name};
             {error, What} ->
-                ?ERROR_MSG("Error in gethostname:~nSocket: ~p~nError: ~p", [What]),
+                ?ERROR_MSG("Error in gethostname:~nSocket: ~p~nError: ~p at Addr ~p", [Socket, What, Addr]),
                 error
         end;
       F -> {ok, F}
