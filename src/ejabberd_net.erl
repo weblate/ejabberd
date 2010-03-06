@@ -33,7 +33,7 @@ gethostname(Socket) ->
                 {ok, HostEnt#hostent.h_name};
 	    {error, nxdomain} ->
 		    % Quick fix
-		    {ok, inet_parse:ntoa(Addr);
+		    {ok, inet_parse:ntoa(Addr)};
             {error, What} ->
                 ?ERROR_MSG("Error in gethostname:~nSocket: ~p~nError: ~p at Addr ~p", [Socket, What, Addr]),
                 error
