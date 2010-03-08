@@ -69,6 +69,7 @@
 -record(state, {socket,
 		sockmod,
 		socket_monitor,
+		fqdn,
 		xml_socket,
 		streamid,
 		sasl_state,
@@ -206,9 +207,11 @@ init([{SockMod, Socket}, Opts]) ->
 			Socket
 		end,
 	    SocketMonitor = SockMod:monitor(Socket1),
+	    {ok, FQDN} = ejabberd_net:gethostname(Socket),
 	    {ok, wait_for_stream, #state{socket         = Socket1,
 					 sockmod        = SockMod,
 					 socket_monitor = SocketMonitor,
+					 fqdn           = FQDN,
 					 xml_socket     = XMLSocket,
 					 zlib           = Zlib,
 					 tls            = TLS,
@@ -252,6 +255,8 @@ wait_for_stream({xmlstreamstart, _Name, Attrs}, StateData) ->
 			    send_header(StateData, Server, "1.0", DefaultLang),
 			    case StateData#state.authenticated of
 				false ->
+				    FQDN = StateData#state.fqdn,
+				    ?INFO_MSG("FQDN: ~p~n", [FQDN]),
 				    SASLState =
 					cyrsasl:server_new(
 					  "jabber", Server, "", [],
@@ -266,7 +271,8 @@ wait_for_stream({xmlstreamstart, _Name, Attrs}, StateData) ->
 					  fun(U, P, D, DG) ->
 						  ejabberd_auth:check_password_with_authmodule(
 						    U, Server, P, D, DG)
-					  end),
+					  end,
+					  FQDN),
 				    Mechs = lists:map(
 					      fun(S) ->
 						      {xmlelement, "mechanism", [],

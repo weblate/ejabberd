@@ -59,3 +59,10 @@
 -define(CRITICAL_MSG(Format, Args),
     ejabberd_logger:critical_msg(?MODULE,?LINE,Format, Args)).
 
+-record(sasl_ctx, {
+	  host,
+	  realm,
+	  get_password,
+	  check_password,
+	  check_password_digest,
+	  fqdn}).
