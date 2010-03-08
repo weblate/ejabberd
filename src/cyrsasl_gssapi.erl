@@ -51,7 +51,6 @@
 -behaviour(cyrsasl).
 
 -define(SERVER, cyrsasl_gssapi).
--define(MSG, ?DEBUG).
 
 -record(state, {sasl,
 		needsmore=true,
@@ -80,7 +79,7 @@ stop() ->
     supervisor:delete_child(ejabberd_sup, ?SERVER).
 
 mech_new(#sasl_ctx{host=Host, fqdn=FQDN}) ->
-    ?MSG("mech_new ~p ~p~n", [Host, FQDN]),
+    ?DEBUG("mech_new ~p ~p~n", [Host, FQDN]),
     {ok, Sasl} = esasl:server_start(?SERVER, "GSSAPI", "xmpp", FQDN),
     {ok, #state{sasl=Sasl,host=Host}}.
 
@@ -90,10 +89,10 @@ mech_step(State, ClientIn) when is_list(ClientIn) ->
 do_step(#state{needsmore=false}=State, _) ->
     check_user(State);
 do_step(#state{needsmore=true,sasl=Sasl,step=Step}=State, ClientIn) ->
-    ?MSG("mech_step~n", []),
+    ?DEBUG("mech_step~n", []),
     case esasl:step(Sasl, list_to_binary(ClientIn)) of
 	{ok, RspAuth} ->
-	    ?MSG("ok~n", []),
+	    ?DEBUG("ok~n", []),
 	    {ok, Display_name} = esasl:property_get(Sasl, gssapi_display_name),
 	    {ok, Authzid} = esasl:property_get(Sasl, authzid),
 	    {Authid, [$@ | Auth_realm]} =
@@ -103,7 +102,7 @@ do_step(#state{needsmore=true,sasl=Sasl,step=Step}=State, ClientIn) ->
 				 authrealm=Auth_realm},
 	    handle_step_ok(State1, binary_to_list(RspAuth));
 	{needsmore, RspAuth} ->
-	    ?MSG("needsmore~n", []),
+	    ?DEBUG("needsmore~n", []),
 	    if (Step > 0) and (ClientIn =:= []) and (RspAuth =:= <<>>) ->
 		    {error, "not-authorized"};
 		true ->
@@ -117,7 +116,7 @@ do_step(#state{needsmore=true,sasl=Sasl,step=Step}=State, ClientIn) ->
 handle_step_ok(State, []) ->
     check_user(State);
 handle_step_ok(#state{step=Step}=State, RspAuth) ->
-    ?MSG("continue~n", []),
+    ?DEBUG("continue~n", []),
     {continue, RspAuth, State#state{needsmore=false,step=Step+1}}.
 
 check_user(#state{authid=Authid,authzid=Authzid,
@@ -125,7 +124,7 @@ check_user(#state{authid=Authid,authzid=Authzid,
     Realm = ejabberd_config:get_local_option({sasl_realm, Host}),
 
     if Realm =/= Auth_realm ->
-	    ?MSG("bad realm ~p (expected ~p)~n",[Auth_realm, Realm]),
+	    ?DEBUG("bad realm ~p (expected ~p)~n",[Auth_realm, Realm]),
 	    throw({error, "not-authorized"});
        true ->
 	    ok
@@ -133,11 +132,11 @@ check_user(#state{authid=Authid,authzid=Authzid,
 
     case ejabberd_auth:is_user_exists(Authid, Host) of
 	false ->
-	    ?MSG("bad user ~p~n",[Authid]),
+	    ?DEBUG("bad user ~p~n",[Authid]),
 	    throw({error, "not-authorized"});
 	true ->
 	    ok
     end,
 
-    ?MSG("GSSAPI authenticated ~p ~p~n", [Authid, Authzid]),
+    ?DEBUG("GSSAPI authenticated ~p ~p~n", [Authid, Authzid]),
     {ok, [{username, Authid}, {authzid, Authzid}]}.
