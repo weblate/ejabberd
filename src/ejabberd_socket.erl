@@ -50,8 +50,6 @@
 -include("ejabberd.hrl").
 -include_lib("kernel/include/inet.hrl").
 
--include("ejabberd.hrl").
-
 -record(socket_state, {sockmod, socket, receiver}).
 
 %%====================================================================
@@ -236,10 +234,10 @@ gethostname(#socket_state{socket = Socket} = State) ->
 		    ?DEBUG("gethostname result ~p~n",
 			   [HostEnt#hostent.h_name]),
 		    {ok, HostEnt#hostent.h_name};
-		{error, Reason} = E ->
+		{error, _Reason} = E ->
 		    E
 	    end;
-	{error, Reason} = E ->
+	{error, _Reason} = E ->
 	    E
     end.
 
