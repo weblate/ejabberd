@@ -779,7 +779,7 @@ handle_http_put(Sid, Rid, Attrs, Payload, PayloadSize, StreamStart, IP) ->
         {buffered, _Sess} ->
             {200, ?HEADER, "<body xmlns='"++?NS_HTTP_BIND_s++"'/>"};
         {ok, Sess} ->
-            prepare_response(Sess, Rid, Attrs, StreamStart)
+            prepare_response(Sess, Rid, [], StreamStart)
     end.
 
 http_put(Sid, Rid, Attrs, Payload, PayloadSize, StreamStart, IP) ->
@@ -908,9 +908,7 @@ update_shaper(ShaperState, PayloadSize) ->
 	    {NewShaperState, undefined}
     end.
 
-prepare_response(#http_bind{id=Sid, wait=Wait, hold=Hold, to=To}=Sess,
-                 Rid, _, StreamStart) ->
-    receive after 100 -> ok end, %% TODO: Why is this needed. Argh. Bad programming practice.
+prepare_response(Sess, Rid, OutputEls, StreamStart) ->
     case catch http_get(Sess, Rid) of
 	{ok, cancel} ->
 	    %% actually it would be better if we could completely
@@ -923,6 +921,7 @@ prepare_response(#http_bind{id=Sid, wait=Wait, hold=Hold, to=To}=Sess,
             {200, ?HEADER, "<body type='terminate' xmlns='"++?NS_HTTP_BIND_s++"'/>"};
 	{ok, ROutPacket} ->
 	    OutPacket = lists:reverse(ROutPacket),
+<<<<<<< HEAD:src/web/ejabberd_http_bind.erl
             ?DEBUG("OutPacket: ~p", [OutPacket]),
 	    case StreamStart of
                 false ->
@@ -935,97 +934,132 @@ prepare_response(#http_bind{id=Sid, wait=Wait, hold=Hold, to=To}=Sess,
 			    SendRes
 		    end;
 		true ->
-		    case OutPacket of
-			[{xmlstreamstart, _, OutAttrs} | Els] ->
-			    AuthID = exmpp_xml:get_attribute_from_list_as_list(OutAttrs, "id", ""),
-			    FromB = exmpp_xml:get_attribute_from_list_as_binary(OutAttrs, "from", ""),
-			    Version = exmpp_xml:get_attribute_from_list_as_list(OutAttrs, "version", ""),
-			    OutEls =
-				case Els of
-				    [] ->
-					[];
-				    [{xmlstreamelement,
-				      #xmlel{name = 'features',
-				             declared_ns = [{undefined, ?NS_XMPP_pfx}],
-				             attrs = StreamAttribs,
-				             children = StreamEls}}
-				     | StreamTail] ->
+
+	    end;
+=======
+            ?DEBUG("OutPacket: ~p", [OutputEls++OutPacket]),
+	    prepare_outpacket_response(Sess, Rid, OutputEls++OutPacket, StreamStart);
+>>>>>>> 477fc15... remove the silly loop that isnt needed, this speeds up all requests by 100 milliseconds. Clean up prepare response function and add two new functions to handle out going payloads based of whether its a new session or not.:src/web/ejabberd_http_bind.erl
+	{'EXIT', {shutdown, _}} ->
+            {200, ?HEADER, "<body type='terminate' condition='system-shutdown' xmlns='"++?NS_HTTP_BIND_s++"'/>"};
+	{'EXIT', _Reason} ->
+            {200, ?HEADER, "<body type='terminate' xmlns='"++?NS_HTTP_BIND_s++"'/>"}
+    end.
+
+%% Send output payloads on establised sessions
+prepare_outpacket_response(Sess, _Rid, OutPacket, false) ->
+    case catch send_outpacket(Sess, OutPacket) of
+	{'EXIT', _Reason} ->
+	    {200, ?HEADER,
+	     "<body type='terminate' xmlns='"++
+	     ?NS_HTTP_BIND++"'/>"};
+	SendRes ->
+	    SendRes
+    end;
+%% Handle a new session along with its output payload
+prepare_outpacket_response(#http_bind{id=Sid, wait=Wait, 
+				      hold=Hold, to=To}=Sess,
+			   Rid, OutPacket, true) ->    
+
+    case OutPacket of
+	[{xmlstreamstart, _, OutAttrs} | Els] ->
+	    AuthID = exmpp_xml:get_attribute_from_list_as_list(OutAttrs, "id", ""),
+	    FromB = exmpp_xml:get_attribute_from_list_as_binary(OutAttrs, "from", ""),
+	    Version = exmpp_xml:get_attribute_from_list_as_list(OutAttrs, "version", ""),
+	    OutEls =
+		case Els of
+		    [] ->
+			[];
+		    [{xmlstreamelement,
+		      #xmlel{name = 'features',
+			     declared_ns = [{undefined, ?NS_XMPP_pfx}],
+			     attrs = StreamAttribs,
+			     children = StreamEls}}
+		     | StreamTail] ->
 %				      {xmlelement, "stream:features",
 %				       StreamAttribs, StreamEls}}
 %				     | StreamTail] ->
-					TypedTail =
-					    [check_default_xmlns(OEl) ||
-						{xmlstreamelement, OEl} <-
-						    StreamTail],
-				  [#xmlel{name = 'features',
-				          declared_ns = [{?NS_XMPP_s, ?NS_XMPP_pfx}],
-				          attrs = StreamAttribs,
-				          children = StreamEls}] ++
+			TypedTail =
+			    [check_default_xmlns(OEl) ||
+				{xmlstreamelement, OEl} <-
+				    StreamTail],
+			[#xmlel{name = 'features',
+				declared_ns = [{?NS_XMPP_s, ?NS_XMPP_pfx}],
+				attrs = StreamAttribs,
+				children = StreamEls}] ++
 %					[{xmlelement, "stream:features",
 %					  [{"xmlns:stream",
 %					    ?NS_XMPP_s}] ++
 %					  StreamAttribs, StreamEls}] ++
 					    TypedTail;
-				    StreamTail ->
-					[check_default_xmlns(OEl) ||
-					    {xmlstreamelement, OEl} <-
-						StreamTail]
-				end,
-			    BOSH_attribs =
-				[#xmlattr{name = 'authid', value = list_to_binary(AuthID)},
-				 #xmlattr{name = 'xmlns:xmpp', value = ?NS_BOSH_b},
-				 #xmlattr{name = 'xmlns:stream', value = ?NS_XMPP_b}] ++
-				case OutEls of
-				    [] ->
-					[];
-				    _ ->
-					[#xmlattr{name = 'xmpp:version', value = list_to_binary(Version)}]
-				end,
-			    MaxInactivity = get_max_inactivity(To, ?MAX_INACTIVITY),
-			    MaxPause = get_max_pause(To),
-			    {200, ?HEADER,
-			     exmpp_xml:document_to_list(
-			       #xmlel{name = 'body',
-			              ns = ?NS_HTTP_BIND_s,
-			              attrs = [
-			                #xmlattr{name = 'sid',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = list_to_binary(Sid)
-			                },
-			                #xmlattr{name = 'wait',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = list_to_binary(integer_to_list(Wait))
-			                },
-			                #xmlattr{name = 'requests',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = list_to_binary(integer_to_list(Hold+1))
-			                },
-			                #xmlattr{name = 'inactivity',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = list_to_binary(integer_to_list(trunc(MaxInactivity/1000)))
-			                },
-			                #xmlattr{name = 'maxpause',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = list_to_binary(integer_to_list(MaxPause))
-			                },
-			                #xmlattr{name = 'polling',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = list_to_binary(integer_to_list(trunc(?MIN_POLLING/1000000)))
-			                },
-			                #xmlattr{name = 'ver',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = ?BOSH_VERSION_b
-			                },
-			                #xmlattr{name = 'from',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = FromB
-			                },
-			                #xmlattr{name = 'secure',
-			                         ns = ?NS_HTTP_BIND_s,
-			                         value = <<"true">>
-			                }
-			              ] ++ BOSH_attribs,
-			              children = OutEls})};
+		    StreamTail ->
+			[check_default_xmlns(OEl) ||
+			    {xmlstreamelement, OEl} <-
+				StreamTail]
+		end,
+	    case OutEls of 
+		[] ->
+		    prepare_response(Sess, Rid, OutPacket, true);
+		[#xmlel{name = 'stream:error'}] ->
+		    {200, ?HEADER, "<body type='terminate' "
+		     "condition='host-unknown' "
+		     "xmlns='"++?NS_HTTP_BIND++"'/>"};                  
+		_ ->
+		    BOSH_attribs =
+			[#xmlattr{name = 'authid', value = list_to_binary(AuthID)},
+			 #xmlattr{name = 'xmlns:xmpp', value = ?NS_BOSH_b},
+			 #xmlattr{name = 'xmlns:stream', value = ?NS_XMPP_b}] ++
+			case OutEls of
+			    [] ->
+				prepare_response(Sess, Rid, OutPacket, true);
+			    _ ->
+				[#xmlattr{name = 'xmpp:version', value = list_to_binary(Version)}]
+			end,
+		    MaxInactivity = get_max_inactivity(To, ?MAX_INACTIVITY),
+		    MaxPause = get_max_pause(To),
+		    {200, ?HEADER,
+		     exmpp_xml:document_to_list(
+		       #xmlel{name = 'body',
+			      ns = ?NS_HTTP_BIND_s,
+			      attrs = [
+			       #xmlattr{name = 'sid',
+					ns = ?NS_HTTP_BIND_s,
+					value = list_to_binary(Sid)
+				       },
+			       #xmlattr{name = 'wait',
+					ns = ?NS_HTTP_BIND_s,
+					value = list_to_binary(integer_to_list(Wait))
+				       },
+			       #xmlattr{name = 'requests',
+					ns = ?NS_HTTP_BIND_s,
+					value = list_to_binary(integer_to_list(Hold+1))
+				       },
+			       #xmlattr{name = 'inactivity',
+					ns = ?NS_HTTP_BIND_s,
+					value = list_to_binary(integer_to_list(trunc(MaxInactivity/1000)))
+				       },
+			       #xmlattr{name = 'maxpause',
+					ns = ?NS_HTTP_BIND_s,
+					value = list_to_binary(integer_to_list(MaxPause))
+				       },
+			       #xmlattr{name = 'polling',
+					ns = ?NS_HTTP_BIND_s,
+					value = list_to_binary(integer_to_list(trunc(?MIN_POLLING/1000000)))
+				       },
+			       #xmlattr{name = 'ver',
+					ns = ?NS_HTTP_BIND_s,
+					value = ?BOSH_VERSION_b
+				       },
+			       #xmlattr{name = 'from',
+					ns = ?NS_HTTP_BIND_s,
+					value = FromB
+				       },
+			       #xmlattr{name = 'secure',
+					ns = ?NS_HTTP_BIND_s,
+					value = <<"true">>
+				       }
+			      ] ++ BOSH_attribs,
+		      children = OutEls})};
 %			       {xmlelement,"body",
 %				[{"xmlns",
 %				  ?NS_HTTP_BIND_s},
@@ -1044,17 +1078,13 @@ prepare_response(#http_bind{id=Sid, wait=Wait, hold=Hold, to=To}=Sess,
 %				 {"from", From},
 %				 {"secure", "true"} %% we're always being secure
 %				] ++ BOSH_attribs,OutEls})};
-			{error, _} ->
-			    {200, ?HEADER, "<body type='terminate' "
-			     "condition='host-unknown' "
-			     "xmlns='"++?NS_HTTP_BIND_s++"'/>"}
-		    end
-	    end;
-	{'EXIT', {shutdown, _}} ->
-            {200, ?HEADER, "<body type='terminate' condition='system-shutdown' xmlns='"++?NS_HTTP_BIND_s++"'/>"};
-	{'EXIT', _Reason} ->
-            {200, ?HEADER, "<body type='terminate' xmlns='"++?NS_HTTP_BIND_s++"'/>"}
+		end;
+	_ ->         
+	    {200, ?HEADER, "<body type='terminate' "
+	     "condition='internal-server-error' "
+	     "xmlns='"++?NS_HTTP_BIND++"'/>"}    
     end.
+
 
 http_get(#http_bind{pid = FsmRef, wait = Wait, hold = Hold}, Rid) ->
     gen_fsm:sync_send_all_state_event(
