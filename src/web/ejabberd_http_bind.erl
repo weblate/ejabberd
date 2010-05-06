@@ -921,25 +921,8 @@ prepare_response(Sess, Rid, OutputEls, StreamStart) ->
             {200, ?HEADER, "<body type='terminate' xmlns='"++?NS_HTTP_BIND_s++"'/>"};
 	{ok, ROutPacket} ->
 	    OutPacket = lists:reverse(ROutPacket),
-<<<<<<< HEAD:src/web/ejabberd_http_bind.erl
-            ?DEBUG("OutPacket: ~p", [OutPacket]),
-	    case StreamStart of
-                false ->
-		    case catch send_outpacket(Sess, OutPacket) of
-			{'EXIT', _Reason} ->
-			    {200, ?HEADER,
-			     "<body type='terminate' xmlns='"++
-			     ?NS_HTTP_BIND_s++"'/>"};
-			SendRes ->
-			    SendRes
-		    end;
-		true ->
-
-	    end;
-=======
             ?DEBUG("OutPacket: ~p", [OutputEls++OutPacket]),
 	    prepare_outpacket_response(Sess, Rid, OutputEls++OutPacket, StreamStart);
->>>>>>> 477fc15... remove the silly loop that isnt needed, this speeds up all requests by 100 milliseconds. Clean up prepare response function and add two new functions to handle out going payloads based of whether its a new session or not.:src/web/ejabberd_http_bind.erl
 	{'EXIT', {shutdown, _}} ->
             {200, ?HEADER, "<body type='terminate' condition='system-shutdown' xmlns='"++?NS_HTTP_BIND_s++"'/>"};
 	{'EXIT', _Reason} ->
@@ -952,7 +935,7 @@ prepare_outpacket_response(Sess, _Rid, OutPacket, false) ->
 	{'EXIT', _Reason} ->
 	    {200, ?HEADER,
 	     "<body type='terminate' xmlns='"++
-	     ?NS_HTTP_BIND++"'/>"};
+	     ?NS_HTTP_BIND_s++"'/>"};
 	SendRes ->
 	    SendRes
     end;
@@ -1003,7 +986,7 @@ prepare_outpacket_response(#http_bind{id=Sid, wait=Wait,
 		[#xmlel{name = 'stream:error'}] ->
 		    {200, ?HEADER, "<body type='terminate' "
 		     "condition='host-unknown' "
-		     "xmlns='"++?NS_HTTP_BIND++"'/>"};                  
+		     "xmlns='"++?NS_HTTP_BIND_s++"'/>"};                  
 		_ ->
 		    BOSH_attribs =
 			[#xmlattr{name = 'authid', value = list_to_binary(AuthID)},
@@ -1059,7 +1042,7 @@ prepare_outpacket_response(#http_bind{id=Sid, wait=Wait,
 					value = <<"true">>
 				       }
 			      ] ++ BOSH_attribs,
-		      children = OutEls})};
+		      children = OutEls})}
 %			       {xmlelement,"body",
 %				[{"xmlns",
 %				  ?NS_HTTP_BIND_s},
@@ -1082,7 +1065,7 @@ prepare_outpacket_response(#http_bind{id=Sid, wait=Wait,
 	_ ->         
 	    {200, ?HEADER, "<body type='terminate' "
 	     "condition='internal-server-error' "
-	     "xmlns='"++?NS_HTTP_BIND++"'/>"}    
+	     "xmlns='"++?NS_HTTP_BIND_s++"'/>"}    
     end.
 
 
