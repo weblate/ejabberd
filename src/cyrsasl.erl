@@ -34,6 +34,8 @@
 	 server_start/3,
 	 server_step/2]).
 
+-include("ejabberd.hrl").
+
 -record(sasl_mechanism, {mechanism, module, require_plain_password}).
 -record(sasl_state, {service, myname,
 		     mech_mod, mech_state, ctx}).
@@ -51,11 +53,32 @@ start() ->
     ets:new(sasl_mechanism, [named_table,
 			     public,
 			     {keypos, #sasl_mechanism.mechanism}]),
-    cyrsasl_gssapi:start([]),
     cyrsasl_plain:start([]),
     cyrsasl_digest:start([]),
     cyrsasl_anonymous:start([]),
+    maybe_try_start_gssapi(),
     ok.
+
+maybe_try_start_gssapi() ->
+    case os:getenv("KRB5_KTNAME") of
+        false ->
+	    ok;
+        _String ->
+	    try_start_gssapi()
+    end.
+
+try_start_gssapi() ->
+    case code:load_file(esasl) of
+	{module, _Module} ->
+	    cyrsasl_gssapi:start([]);
+	{error, What} ->
+	    ?ERROR_MSG("Support for GSSAPI not started because esasl.beam was not found: ~p", [What])
+    end.
+
+%% @spec (Mechanism, Module, Require_Plain) -> true
+%%     Mechanism = string()
+%%     Module = atom()
+%%     Require_Plain = bool()
 
 register_mechanism(Mechanism, Module, RequirePlainPassword) ->
     ets:insert(sasl_mechanism,
