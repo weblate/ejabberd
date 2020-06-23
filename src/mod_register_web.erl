@@ -55,7 +55,7 @@
 
 -behaviour(gen_mod).
 
--export([start/2, stop/1, reload/3, process/2, mod_options/1, depends/2]).
+-export([start/2, stop/1, reload/3, process/2, mod_options/1, mod_opt_type/1, depends/2]).
 -export([mod_doc/0]).
 
 -include("logger.hrl").
@@ -88,8 +88,8 @@ depends(_Host, _Opts) ->
 %%% HTTP handlers
 %%%----------------------------------------------------------------------
 
-process([], #request{method = 'GET', lang = Lang}) ->
-    index_page(Lang);
+process([], #request{method = 'GET', host = Host, lang = Lang}) ->
+    index_page(Host, Lang);
 process([<<"register.css">>],
 	#request{method = 'GET'}) ->
     serve_css();
@@ -197,7 +197,7 @@ meta() ->
 %%% Index page
 %%%----------------------------------------------------------------------
 
-index_page(Lang) ->
+index_page(Host, Lang) ->
     HeadEls = [meta(),
 	       ?XCT(<<"title">>,
 		    ?T("Jabber Account Registration")),
@@ -220,7 +220,15 @@ index_page(Lang) ->
     {200,
      [{<<"Server">>, <<"ejabberd">>},
       {<<"Content-Type">>, <<"text/html">>}],
-     ejabberd_web:make_xhtml(HeadEls, Els)}.
+     ejabberd_web:make_xhtml(HeadEls, add_body_startend(Host, Els))}.
+
+add_body_startend(Host, Els) ->
+    Opts = gen_mod:get_module_opts(Host, ?MODULE),
+    StartOpt = gen_mod:get_opt(html_body_start, Opts),
+    EndOpt = gen_mod:get_opt(html_body_end, Opts),
+    BodyStart = [fxml_stream:parse_element(Line) || Line <- StartOpt],
+    BodyEnd = [fxml_stream:parse_element(Line) || Line <- EndOpt],
+    BodyStart ++ Els ++ BodyEnd.
 
 %%%----------------------------------------------------------------------
 %%% Formulary new account GET
@@ -308,7 +316,7 @@ form_new_get2(Host, Lang, CaptchaEls) ->
     {200,
      [{<<"Server">>, <<"ejabberd">>},
       {<<"Content-Type">>, <<"text/html">>}],
-     ejabberd_web:make_xhtml(HeadEls, Els)}.
+     ejabberd_web:make_xhtml(HeadEls, add_body_startend(Host, Els))}.
 
 %% Copied from mod_register.erl
 %% Function copied from ejabberd_logger_h.erl and customized
@@ -423,7 +431,7 @@ form_changepass_get(Host, Lang) ->
     {200,
      [{<<"Server">>, <<"ejabberd">>},
       {<<"Content-Type">>, <<"text/html">>}],
-     ejabberd_web:make_xhtml(HeadEls, Els)}.
+     ejabberd_web:make_xhtml(HeadEls, add_body_startend(Host, Els))}.
 
 %%%----------------------------------------------------------------------
 %%% Formulary change password POST
@@ -526,7 +534,7 @@ form_del_get(Host, Lang) ->
     {200,
      [{<<"Server">>, <<"ejabberd">>},
       {<<"Content-Type">>, <<"text/html">>}],
-     ejabberd_web:make_xhtml(HeadEls, Els)}.
+     ejabberd_web:make_xhtml(HeadEls, add_body_startend(Host, Els))}.
 
 %% @spec(Username, Host, Password) -> {success, ok, {Username, Host, Password} |
 %%                                    {success, exists, {Username, Host, Password}} |
@@ -617,7 +625,17 @@ get_error_text({error, wrong_parameters}) ->
     ?T("Wrong parameters in the web formulary").
 
 mod_options(_) ->
-    [].
+    [{html_body_start, []},
+     {html_body_end, []}].
+
+mod_opt_type(html_body_end) ->
+    econf:list(
+      econf:binary(),
+      []);
+mod_opt_type(html_body_start) ->
+    econf:list(
+      econf:binary(),
+      []).
 
 mod_doc() ->
     #{desc =>
@@ -634,4 +652,25 @@ mod_doc() ->
 	      "important to include the last / character in the URL, "
 	      "otherwise the subpages URL will be incorrect."), "",
            ?T("The module depends on 'mod_register' where all the configuration "
-              "is performed.")]}.
+              "regarding registration access is performed.")],
+      opts =>
+          [{html_body_start,
+            #{value => "[]",
+              desc =>
+                  ?T("List of lines to add just after the opening HTML Body tag."
+                     "The default value is: '[]'.")}},
+           {html_body_end,
+            #{value => "[]",
+              desc =>
+                  ?T("List of lines to add just before the closing HTML Body tag."
+                     "The default value is: '[]'.")}}],
+      example =>
+          ["modules:",
+           "  ...",
+           "  mod_register_web:",
+           "    html_body_start:",
+           "      - <style>@import url('mystyle.css')</style>",
+           "      - <p>Hello Firiends!</p>",
+           "    html_body_end:",
+           "      - <p>Please see <a href='privacy.html'>policy</a>.</p>",
+           "  ..."]}.
