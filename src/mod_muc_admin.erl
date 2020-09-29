@@ -35,7 +35,7 @@
 	 create_rooms_file/1, destroy_rooms_file/1,
 	 rooms_unused_list/2, rooms_unused_destroy/2,
 	 rooms_empty_list/1, rooms_empty_destroy/1,
-	 get_user_rooms/2, get_room_occupants/2,
+	 get_user_rooms/2, get_user_subscriptions/2, get_room_occupants/2,
 	 get_room_occupants_number/2, send_direct_invitation/5,
 	 change_room_option/4, get_room_options/2,
 	 set_room_affiliation/4, get_room_affiliations/2, get_room_affiliation/3,
@@ -235,6 +235,14 @@ get_commands_spec() ->
 		        result_example = ["room1@muc.example.com", "room2@muc.example.com"],
 			args = [{user, binary}, {host, binary}],
 		        result = {rooms, {list, {room, string}}}},
+     #ejabberd_commands{name = get_user_subscriptions, tags = [muc],
+			desc = "Get the list of rooms where this user is subscribed",
+			module = ?MODULE, function = get_user_subscriptions,
+		        args_desc = ["Username", "Server host"],
+		        args_example = ["tom", "example.com"],
+		        result_example = ["room1@muc.example.com", "room2@muc.example.com"],
+			args = [{user, binary}, {host, binary}],
+		        result = {rooms, {list, {room, string}}}},
 
      #ejabberd_commands{name = get_room_occupants, tags = [muc_room],
 			desc = "Get the list of occupants of a MUC room",
@@ -425,6 +433,15 @@ get_user_rooms(User, Server) ->
 		      []
 	      end
       end, ejabberd_option:hosts()).
+
+get_user_subscriptions(User, Server) ->
+    Services = find_services(global),
+    UserJid = jid:make(jid:nodeprep(User), jid:nodeprep(Server)),
+    lists:flatmap(
+      fun(ServerHost) ->
+              {ok, Rooms} = mod_muc:get_subscribed_rooms(ServerHost, UserJid),
+              [jid:encode(RoomJid) || {RoomJid, _UserNick, _Nodes} <- Rooms]
+      end, Services).
 
 %%----------------------------
 %% Ad-hoc commands
