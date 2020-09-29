@@ -240,9 +240,17 @@ get_commands_spec() ->
 			module = ?MODULE, function = get_user_subscriptions,
 		        args_desc = ["Username", "Server host"],
 		        args_example = ["tom", "example.com"],
-		        result_example = ["room1@muc.example.com", "room2@muc.example.com"],
+		        result_example = [{"room1@muc.example.com", "Tommy", ["mucsub:config"]}],
 			args = [{user, binary}, {host, binary}],
-		        result = {rooms, {list, {room, string}}}},
+		        result = {rooms,
+                                  {list,
+                                   {room,
+                                    {tuple,
+                                     [{roomjid, string},
+                                      {usernick, string},
+                                      {nodes, {list, {node, string}}}
+                                     ]}}
+                                  }}},
 
      #ejabberd_commands{name = get_room_occupants, tags = [muc_room],
 			desc = "Get the list of occupants of a MUC room",
@@ -440,7 +448,8 @@ get_user_subscriptions(User, Server) ->
     lists:flatmap(
       fun(ServerHost) ->
               {ok, Rooms} = mod_muc:get_subscribed_rooms(ServerHost, UserJid),
-              [jid:encode(RoomJid) || {RoomJid, _UserNick, _Nodes} <- Rooms]
+              [{jid:encode(RoomJid), UserNick, Nodes}
+               || {RoomJid, UserNick, Nodes} <- Rooms]
       end, Services).
 
 %%----------------------------
