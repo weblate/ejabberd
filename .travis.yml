@@ -6,7 +6,7 @@ otp_release:
 
 os: linux
 
-dist: xenial
+dist: bionic
 
 services:
   - redis
