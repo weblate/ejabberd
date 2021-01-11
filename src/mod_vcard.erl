@@ -210,7 +210,7 @@ process_local_iq(#iq{type = get, to = To, lang = Lang} = IQ) ->
 		undefined ->
 		    #vcard_temp{fn = <<"ejabberd">>,
 				url = ejabberd_config:get_uri(),
-				desc = misc:get_descr(Lang, ?T("Erlang XMPP Server")),
+				desc = misc:get_descr(Lang, ?T("Erlang XMPP/MQTTTT Server")),
 				bday = <<"2002-11-16">>};
 		V ->
 		    V
