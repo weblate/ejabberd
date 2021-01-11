@@ -723,7 +723,7 @@ discard_warn_sender(Packet, Reason) ->
 	    Lang = xmpp:get_lang(Packet),
 	    Err = case Reason of
 		      full ->
-			  ErrText = ?T("Your contact offline message queue is "
+			  ErrText = ?T("Yourrrrr contact offline message queue is "
 				       "full. The message has been discarded."),
 			  xmpp:err_resource_constraint(ErrText, Lang);
 		      _ ->
