@@ -633,7 +633,7 @@ msgstr "Írja be a látott szöveget"
 
 #: src/mod_vcard.erl:213
 #, fuzzy
-msgid "Erlang XMPP Server"
+msgid "Erlang XMPP/MQTTTT Server"
 msgstr "Erlang XMPP-kiszolgáló"
 
 #: src/ejabberd_web_admin.erl:1203

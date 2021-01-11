@@ -582,7 +582,7 @@ msgid "Enter the text you see"
 msgstr ""
 
 #: src/mod_vcard.erl:213
-msgid "Erlang XMPP Server"
+msgid "Erlang XMPP/MQTTTT Server"
 msgstr ""
 
 #: src/ejabberd_web_admin.erl:1203

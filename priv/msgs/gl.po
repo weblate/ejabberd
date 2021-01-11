@@ -634,7 +634,7 @@ msgstr "Introduza o texto que ves"
 
 #: src/mod_vcard.erl:213
 #, fuzzy
-msgid "Erlang XMPP Server"
+msgid "Erlang XMPP/MQTTTT Server"
 msgstr "Servidor XMPP en Erlang"
 
 #: src/ejabberd_web_admin.erl:1203

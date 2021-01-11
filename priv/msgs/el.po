@@ -641,7 +641,7 @@ msgstr "Πληκτρολογήστε το κείμενο που βλέπετε"
 
 #: src/mod_vcard.erl:213
 #, fuzzy
-msgid "Erlang XMPP Server"
+msgid "Erlang XMPP/MQTTTT Server"
 msgstr "Erlang XMPP Διακομιστής"
 
 #: src/ejabberd_web_admin.erl:1203

@@ -637,7 +637,7 @@ msgstr "Gördüğünüz metni giriniz"
 
 #: src/mod_vcard.erl:213
 #, fuzzy
-msgid "Erlang XMPP Server"
+msgid "Erlang XMPP/MQTTTT Server"
 msgstr "Erlang XMPP Sunucusu"
 
 #: src/ejabberd_web_admin.erl:1203

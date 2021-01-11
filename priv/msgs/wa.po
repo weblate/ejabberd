@@ -636,7 +636,7 @@ msgstr "Tapez l' tecse ki vos voeyoz"
 
 #: src/mod_vcard.erl:213
 #, fuzzy
-msgid "Erlang XMPP Server"
+msgid "Erlang XMPP/MQTTTT Server"
 msgstr "Sierveu XMPP Erlang"
 
 #: src/ejabberd_web_admin.erl:1203

@@ -636,7 +636,7 @@ msgstr "Voer de getoonde tekst in"
 
 #: src/mod_vcard.erl:213
 #, fuzzy
-msgid "Erlang XMPP Server"
+msgid "Erlang XMPP/MQTTTT Server"
 msgstr "Erlang XMPP Server"
 
 #: src/ejabberd_web_admin.erl:1203
