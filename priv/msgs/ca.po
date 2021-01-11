@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1.0-alpha\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-01-11 23:46+0000\n"
+"PO-Revision-Date: 2021-01-11 23:47+0000\n"
 "Last-Translator: badlop <badlop@process-one.net>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/ejabberd/"
 "test-ejabberd/ca/>\n"
@@ -1920,9 +1920,8 @@ msgid "Roster size"
 msgstr "Tamany de la llista"
 
 #: src/mod_roster.erl:1174
-#, fuzzy
 msgid "Roster:"
-msgstr "Llista de contactes"
+msgstr "Llista de contactes:"
 
 #: src/mod_configure.erl:498 src/ejabberd_web_admin.erl:1071
 msgid "Running Nodes"
@@ -2593,7 +2592,7 @@ msgstr "Usuari (jid)"
 
 #: deps/xmpp/src/mam_query.erl:316 deps/xmpp/src/muc_request.erl:354
 msgid "User JID"
-msgstr "JID del usuari "
+msgstr "JID del usuari"
 
 #: src/mod_configure.erl:298 src/mod_configure.erl:493
 msgid "User Management"
