@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1.0-alpha\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-01-11 23:47+0000\n"
+"PO-Revision-Date: 2021-01-11 23:50+0000\n"
 "Last-Translator: badlop <badlop@process-one.net>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/ejabberd/"
 "test-ejabberd/ca/>\n"
@@ -144,7 +144,7 @@ msgstr "Subscripció"
 
 #: deps/xmpp/src/pubsub_subscribe_authorization.erl:343
 msgid "Allow this Jabber ID to subscribe to this pubsub node?"
-msgstr "Permetre que aquesta Jabber ID es puga subscriure a aquest node pubsub"
+msgstr "Permetre que aquesta Jabber ID es puga subscriure a aquest node pubsub?"
 
 #: deps/xmpp/src/muc_register.erl:417
 msgid "Allow this person to register with the room?"
