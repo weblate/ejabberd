@@ -4,15 +4,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: es\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-01-11 21:04+0100\n"
-"Last-Translator: Badlop <badlop@process-one.net>\n"
-"Language-Team: \n"
+"PO-Revision-Date: 2021-01-11 23:23+0000\n"
+"Last-Translator: badlop <badlop@process-one.net>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/ejabberd/"
+"test-ejabberd/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.4.1-dev\n"
 "X-Language: Spanish (castellano)\n"
-"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-Basepath: ../../src\n"
 "X-Poedit-SearchPath-0: .\n"
 
@@ -630,9 +632,8 @@ msgid "Enter the text you see"
 msgstr "Teclea el texto que ves"
 
 #: src/mod_vcard.erl:213
-#, fuzzy
 msgid "Erlang XMPP/MQTTTT Server"
-msgstr "Servidor XMPP en Erlang"
+msgstr "Servidor XMPP/MQTTTTTT en Erlang"
 
 #: src/ejabberd_web_admin.erl:1203
 msgid "Error"
