@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1.0-alpha\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-01-11 23:36+0000\n"
+"PO-Revision-Date: 2021-01-11 23:46+0000\n"
 "Last-Translator: badlop <badlop@process-one.net>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/ejabberd/"
 "test-ejabberd/ca/>\n"
@@ -77,7 +77,7 @@ msgstr "Regles d'Accés"
 
 #: deps/xmpp/src/pubsub_publish_options.erl:295
 msgid "Access model of authorize"
-msgstr ""
+msgstr "Model d'accés d'autorització"
 
 #: deps/xmpp/src/pubsub_publish_options.erl:299
 msgid "Access model of open"
@@ -148,7 +148,7 @@ msgstr "Permetre que aquesta Jabber ID es puga subscriure a aquest node pubsub"
 
 #: deps/xmpp/src/muc_register.erl:417
 msgid "Allow this person to register with the room?"
-msgstr ""
+msgstr "Permetre que esta persona es registre amb la sala?"
 
 #: src/mod_muc_log.erl:813 deps/xmpp/src/muc_roomconfig.erl:1654
 msgid "Allow users to change the subject"
@@ -197,7 +197,7 @@ msgstr "Anuncis"
 
 #: deps/xmpp/src/captcha_form.erl:762
 msgid "Answer associated with a picture"
-msgstr ""
+msgstr "Resposta asociada amb una imatge"
 
 #: deps/xmpp/src/captcha_form.erl:866
 msgid "Answer associated with a video"
