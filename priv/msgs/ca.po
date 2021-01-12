@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1.0-alpha\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-01-11 23:50+0000\n"
+"PO-Revision-Date: 2021-01-12 12:05+0000\n"
 "Last-Translator: badlop <badlop@process-one.net>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/ejabberd/"
 "test-ejabberd/ca/>\n"
@@ -2430,7 +2430,7 @@ msgstr "A ~ts"
 
 #: src/ejabberd_oauth.erl:510
 msgid "Token TTL"
-msgstr "Token TTL"
+msgstr "Token TTL (temps de vida)"
 
 #: src/mod_fail2ban.erl:219
 msgid ""
